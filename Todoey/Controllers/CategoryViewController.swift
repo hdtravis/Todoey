@@ -1,56 +1,52 @@
 //
-//  ViewController.swift
+//  CategoryViewController.swift
 //  Todoey
 //
-//  Created by Henry Travis on 1/29/18.
+//  Created by Henry Travis on 2/19/18.
 //  Copyright © 2018 MidfieldSoultions. All rights reserved.
 //
 
 import UIKit
 import CoreData
 
-class TodoListViewController: UITableViewController {
-
-    var itemArray = [Item]()
-
+class CategoryViewController: UITableViewController {
+    
+    var categoryArray = [Category]()
+    
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-      
-        print(FileManager.default.urls(for: .documentDirectory, in: .userDomainMask))
-        
-        loadItems()
-    
+
+
     }
 
+    
     //MARK - Tableview Datasource Methods
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return itemArray.count
+        return categoryArray.count
     }
-
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoItemCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
         
-        let item = itemArray[indexPath.row]
+        let category = categoryArray[indexPath.row]
         
-        cell.textLabel?.text = itemArray[indexPath.row].title
+        cell.textLabel?.text = categoryArray[indexPath.row].name
         
-        cell.accessoryType = item.done ? .checkmark : .none
+        // cell.accessoryType = category.done ? .checkmark : .none
         
         return cell
         
     }
-    
     //MARK - TableView Delegate Methods
     
     override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
         //print(indexPath.row)
         
-        itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+        // categoryArray[indexPath.row].done = !categoryArray[indexPath.row].done
         
         if tableView.cellForRow(at: indexPath)?.accessoryType == .checkmark {
             tableView.cellForRow(at: indexPath)?.accessoryType = .none
@@ -58,87 +54,93 @@ class TodoListViewController: UITableViewController {
             tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
         }
         
-        saveItems()
+        saveCategories()
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
-
-    //MARK - Add New Items
+    
+    
+    
+    //MARK: - Data Manipulation Methods, load and save
+    
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
         
         var textField = UITextField()
         
-        let alert = UIAlertController(title: "Add new Todoey Item", message: "",preferredStyle: .alert)
+        let alert = UIAlertController(title: "Add New Category", message: "",preferredStyle: .alert)
         
-        let action = UIAlertAction(title: "Add Item", style: .default) {(action) in
+        let action = UIAlertAction(title: "Add Category", style: .default) {(action) in
             //what will happen once the user clicks the Add Item button on our UIAlert
-          
             
-            let newItem = Item(context: self.context)
-            newItem.title = textField.text!
-            newItem.done = false
             
-            self.itemArray.append(newItem)
-           
-            self.saveItems()
+            let newCategory = Category(context: self.context)
+            newCategory.name = textField.text!
             
-        }
-        
-        alert.addTextField { (alertTextField) in
-            alertTextField.placeholder = "Create new item"
-            textField = alertTextField
+            self.categoryArray.append(newCategory)
+            
+            self.saveCategories()
             
         }
         
         alert.addAction(action)
         
+        alert.addTextField { (alertTextField) in
+            alertTextField.placeholder = "Create new category"
+            textField = alertTextField
+            
+        }
+        
+ 
         present(alert, animated: true, completion: nil)
-
-}
-
+        
+        
+    }
     
-    func saveItems(){
+    
+    func saveCategories(){
         
         do {
             try context.save()
         } catch {
             print("Error saving context, \(error)")
-        }  
+        }
         
         self.tableView.reloadData()
     }
-        
-    func loadItems(with request: NSFetchRequest<Item> =  Item.fetchRequest()) {
+    
+    func loadCategories(with request: NSFetchRequest<Category> =  Category.fetchRequest()) {
         do {
-        itemArray = try context.fetch(request)
+            categoryArray = try context.fetch(request)
         } catch {
             print("Error saving context, \(error)")
         }
         
         tableView.reloadData()
     }
+    
+    
 }
 
 // MARK: - Search bar methods
 
-extension TodoListViewController: UISearchBarDelegate {
+extension CategoryViewController: UISearchBarDelegate {
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         
-        let request : NSFetchRequest<Item> = Item.fetchRequest()
+        let request : NSFetchRequest<Category> = Category.fetchRequest()
         
         request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
         
         request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
         
-        loadItems(with: request)
+        loadCategories(with: request)
         
     }
-        
+    
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchBar.text?.count == 0 {
-            loadItems()
+            loadCategories()
             
             DispatchQueue.main.async {
                 searchBar.resignFirstResponder()
@@ -148,3 +150,5 @@ extension TodoListViewController: UISearchBarDelegate {
     }
     
 }
+
+
